@@ -1,0 +1,12 @@
+FROM alpine:latest
+
+# Install dependencies
+# PostgreSQL client is needed to make connection to the postgres database 
+# tzdata is needed for timezone data   
+# cronie is needed for running cron jobs
+
+RUN apk add --no-cache postgresql15-client tzdata cronie
+
+# scripts
+COPY ./scripts/backup.sh /usr/local/bin/backup.sh
+RUN chmod +x /usr/local/bin/backup.sh 

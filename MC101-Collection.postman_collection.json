@@ -1,0 +1,419 @@
+{
+  "info": {
+    "name": "MC101 Notes & Voting API - Full Chain",
+    "_postman_id": "2b63b5a1-7c7f-4f55-92ba-22e4b1b3bbbb",
+    "description": "Complete chain test: Register → Login → User Info → Change Password → Create Notes (app & personal) → Get Notes → Update Note → Delete User",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Register User",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "{{baseUrl}}/users/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "register"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"name\": \"{{name}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Set timestamp for unique email if needed",
+              "pm.environment.set('timestamp', Date.now().toString());"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201 Created', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Response has user id and email', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json).to.have.property('id');",
+              "  pm.expect(json).to.have.property('email', pm.environment.get('email'));",
+              "  pm.environment.set('userId', json.id);",
+              "});",
+              "",
+              "pm.test('Response time < 2000ms', function () {",
+              "  pm.expect(pm.response.responseTime).to.be.below(2000);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Login User",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "{{baseUrl}}/users/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "login"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200 OK', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Has Bearer token', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json).to.have.property('token');",
+              "  pm.expect(json.authentication_type).to.eql('Bearer');",
+              "  pm.environment.set('token', json.token);",
+              "});",
+              "",
+              "pm.test('Response time < 2000ms', function () {",
+              "  pm.expect(pm.response.responseTime).to.be.below(2000);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Get User Info",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/users/info",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "info"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200 OK', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Payload contains user_id and email', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json).to.have.property('user_id');",
+              "  pm.expect(json).to.have.property('email', pm.environment.get('email'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Update User (Change Name)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", ""]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Updated Test User\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200 OK', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('User name updated', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.name).to.eql('Updated Test User');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Create Note (App-level encryption)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/notes",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "notes"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"App-Level Encrypted Note\",\n  \"content\": \"This note uses app-level encryption and is automatically decrypted.\",\n  \"personal_encryption\": false\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201 Created', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Note created with app-level encryption', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json).to.have.property('id');",
+              "  pm.expect(json.personal_encryption).to.eql(false);",
+              "  pm.expect(json.title).to.eql('App-Level Encrypted Note');",
+              "  pm.environment.set('noteId_app', json.id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Get Note (App-level)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/users/notes/{{noteId_app}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "notes", "{{noteId_app}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200 OK', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Note content decrypted automatically', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json).to.have.property('content');",
+              "  pm.expect(json.content).to.include('app-level encryption');",
+              "  pm.expect(json.personal_encryption).to.eql(false);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Create Note (Personal encryption)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/notes",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "notes"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Personal Secret Note\",\n  \"content\": \"This is a top-secret personal note that requires a password to decrypt.\",\n  \"personal_encryption\": true,\n  \"password\": \"{{notePassword}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201 Created', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Note created with personal encryption', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json).to.have.property('id');",
+              "  pm.expect(json.personal_encryption).to.eql(true);",
+              "  pm.expect(json.title).to.eql('Personal Secret Note');",
+              "  pm.environment.set('noteId_personal', json.id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Get Note (Personal with password)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/users/notes/{{noteId_personal}}?password={{notePassword}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "notes", "{{noteId_personal}}"],
+          "query": [{ "key": "password", "value": "{{notePassword}}" }]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200 OK', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Personal note decrypted with password', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.personal_encryption).to.eql(true);",
+              "  pm.expect(json.content).to.include('top-secret');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Update Note (Switch to personal encryption)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/notes/{{noteId_app}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "notes", "{{noteId_app}}"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Updated Note (Now Personal)\",\n  \"content\": \"Updated content with personal encryption.\",\n  \"personal_encryption\": true,\n  \"password\": \"{{notePassword}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200 OK', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Note updated to personal encryption', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json.personal_encryption).to.eql(true);",
+              "  pm.expect(json.title).to.eql('Updated Note (Now Personal)');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Change Password",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/change-password",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "change-password"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"current_password\": \"{{password}}\",\n  \"new_password\": \"{{newPassword}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200 OK', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Password changed successfully', function () {",
+              "  const json = pm.response.json();",
+              "  pm.expect(json).to.have.property('message');",
+              "  // Update env password for subsequent operations if needed",
+              "  pm.environment.set('password', pm.environment.get('newPassword'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Delete User",
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": {
+          "raw": "{{baseUrl}}/users/",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", ""]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 204 No Content', function () {",
+              "  pm.response.to.have.status(204);",
+              "});",
+              "",
+              "pm.test('User deleted successfully', function () {",
+              "  // Cleanup: optionally unset token",
+              "  // pm.environment.unset('token');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

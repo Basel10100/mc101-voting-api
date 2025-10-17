@@ -1,0 +1,50 @@
+class Endpoints:
+    VOTE_COUNTS = "/votes/all-candidates/count"
+    CANDIDATE = "/candidate"
+    REGISTER = "/register"
+    ROOT = "/"
+    HEALTH = "/health" 
+    LOGIN = "/login"
+    LOGOUT = "/logout"
+    CHANGE_PASSWORD = "/change-password"
+    USER_INFO = "/info"
+    VOTING = "/vote"
+    # Notes endpoints
+    NOTES_ROOT = "/notes"
+    NOTES_ITEM = "/notes/{note_id}"
+
+class ResponseMessages:
+    WELCOME = "Welcome to the Voting App!"
+    HEALTH_OK = "The service is up and running!"
+    USER_CREATED = "User successfully created."
+    LOGIN_SUCCESS = "Login successful."
+    USER_ALREADY_EXISTS = "User with this email already exists."
+    USER_NOT_FOUND = "User with this email does not exist."
+    INVALID_PASSWORD = "The password provided is incorrect."
+    INVALID_TOKEN_MISSING_EMAIL = "Invalid token: missing email"
+    INVALID_TOKEN_MISSING_USER = "Invalid token: missing user"
+    INVALID_TOKEN = "Invalid token"
+
+class TableNames:
+    USERS = "users"
+    CANDIDATES = "candidates"
+    VOTES = "votes"
+    NOTES = "notes"
+
+class ColumnNames:
+    ID = "id"
+    USER_ID = "user_id"
+    CANDIDATE_ID = "candidate_id"
+    EMAIL = "email"
+    HASHED_PASSWORD = "hashed_password"
+    Name = "name"
+    IS_ACTIVE = "is_active"
+    CREATED_AT = "created_at"
+    PARTY = "party"
+    UPDATED_AT = "updated_at"
+    # Notes-specific
+    TITLE = "title"
+    CONTENT_ENCRYPTED = "content_encrypted"
+    PERSONAL_ENCRYPTION = "personal_encryption"
+    KDF_SALT = "kdf_salt"
+    NONCE = "nonce"

@@ -1,0 +1,22 @@
+{
+  "id": "b8c1c0a9-6a88-4c7f-b1a1-7f0f0b3eaaaa",
+  "name": "MC101 Notes & Voting - Local",
+  "values": [
+    { "key": "baseUrl", "value": "http://localhost:8000", "type": "default", "enabled": true },
+    { "key": "email", "value": "Siamak.khatami@kristiania.no", "type": "default", "enabled": true },
+    { "key": "name", "value": "Test User", "type": "default", "enabled": true },
+    { "key": "password", "value": "TestPass123!", "type": "default", "enabled": true },
+    { "key": "newPassword", "value": "NewPass123!", "type": "default", "enabled": true },
+    { "key": "token", "value": "", "type": "default", "enabled": true },
+    { "key": "noteId_app", "value": "", "type": "default", "enabled": true },
+    { "key": "noteId_personal", "value": "", "type": "default", "enabled": true },
+    { "key": "notePassword", "value": "MyNoteSecret!", "type": "default", "enabled": true },
+    { "key": "candidateId", "value": "1", "type": "default", "enabled": true },
+    { "key": "timestamp", "value": "", "type": "default", "enabled": true }
+  ],
+  "timestamp": "2025-10-16T00:00:00Z",
+  "_postman_variable_scope": "environment",
+  "_postman_exported_using": "Postman/10",
+  "_postman_exported_at": "2025-10-16T00:00:00Z",
+  "_postman_exported_version": "2.1.0"
+}

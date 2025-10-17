@@ -1,0 +1,48 @@
+I am changing something here2025-09-25 11:45:57,823 - INFO - User router has been included in the main application.
+2025-09-25 11:45:57,825 - INFO - Health check endpoint is set up.
+2025-09-25 11:45:57,826 - INFO - Application setup is complete. Going to start the server if this is the main module.
+2025-09-26 22:10:11,219 - INFO - User router has been included in the main application.
+2025-09-26 22:10:11,227 - INFO - Health check endpoint is set up.
+2025-09-26 22:10:11,227 - INFO - Application setup is complete. Going to start the server if this is the main module.
+2025-10-16 21:06:02,323 - INFO - User router has been included in the main application.
+2025-10-16 21:06:02,325 - INFO - Health check endpoint is set up.
+2025-10-16 21:06:02,325 - INFO - Application setup is complete. Going to start the server if this is the main module.
+2025-10-16 21:06:24,190 - INFO - GET /mc101docs 200 user=- 0.5ms
+2025-10-16 21:06:25,577 - INFO - GET /openapi.json 200 user=- 26.4ms
+2025-10-16 21:07:10,674 - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\basel\AppData\Roaming\Python\Python312\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-10-16 21:07:11,122 - INFO - POST /users/register 201 user=- 493.1ms
+2025-10-16 21:07:11,662 - INFO - POST /users/login 200 user=- 453.8ms
+2025-10-16 21:07:11,757 - INFO - GET /users/info 200 user=11 7.1ms
+2025-10-16 21:07:11,980 - INFO - PATCH /users/ 200 user=11 136.7ms
+2025-10-16 21:07:12,750 - INFO - POST /users/notes 201 user=11 688.9ms
+2025-10-16 21:07:13,194 - INFO - GET /users/notes/1 200 user=11 356.0ms
+2025-10-16 21:07:13,935 - INFO - POST /users/notes 201 user=11 658.4ms
+2025-10-16 21:07:14,298 - INFO - GET /users/notes/2 200 user=11 285.5ms
+2025-10-16 21:07:15,061 - INFO - PATCH /users/notes/1 200 user=11 676.8ms
+2025-10-16 21:07:15,838 - INFO - POST /users/change-password 200 user=11 687.8ms
+2025-10-16 21:07:15,944 - INFO - DELETE /users/ 204 user=11 32.6ms
+2025-10-16 21:09:01,014 - INFO - User router has been included in the main application.
+2025-10-16 21:09:01,015 - INFO - Health check endpoint is set up.
+2025-10-16 21:09:01,015 - INFO - Application setup is complete. Going to start the server if this is the main module.
+2025-10-16 21:09:59,938 - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\basel\AppData\Roaming\Python\Python312\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-10-16 21:10:00,411 - INFO - POST /users/register 201 user=- 556.5ms
+2025-10-16 21:10:00,786 - INFO - POST /users/login 200 user=- 287.9ms
+2025-10-16 21:10:00,866 - INFO - GET /users/info 200 user=11 5.5ms
+2025-10-16 21:10:00,981 - INFO - PATCH /users/ 200 user=11 28.7ms
+2025-10-16 21:10:01,634 - INFO - POST /users/notes 201 user=11 573.6ms
+2025-10-16 21:10:01,991 - INFO - GET /users/notes/3 200 user=11 273.8ms
+2025-10-16 21:10:02,618 - INFO - POST /users/notes 201 user=11 540.3ms
+2025-10-16 21:10:02,983 - INFO - GET /users/notes/4 200 user=11 280.8ms
+2025-10-16 21:10:03,598 - INFO - PATCH /users/notes/3 200 user=11 536.1ms
+2025-10-16 21:10:04,312 - INFO - POST /users/change-password 200 user=11 630.6ms
+2025-10-16 21:10:04,398 - INFO - DELETE /users/ 204 user=11 20.7ms

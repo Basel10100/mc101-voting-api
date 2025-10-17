@@ -1,0 +1,380 @@
+name: MC101 CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  VM_HOST: 51.12.210.9
+  VM_USER: azureuser
+
+jobs:
+  # Build and Test Job
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+    
+    - name: 📦 Install Dependencies
+      run: |
+        echo "🔄 Installing Python dependencies..."
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov
+        echo "✅ Dependencies installed successfully"
+    
+    - name: 🧪 Run Tests
+      run: |
+        echo "🔬 Running test suite..."
+        python -m pytest tests/ -v --cov=. --cov-report=xml --cov-report=term
+        echo "✅ Tests completed successfully"
+    
+    - name: 📊 Upload Coverage Reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+    
+    - name: 🔍 Code Quality Check
+      run: |
+        echo "🔍 Running code quality checks..."
+        pip install flake8 black isort
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        black --check .
+        isort --check-only .
+        echo "✅ Code quality checks passed"
+
+  # Build Docker Images Job
+  build-docker:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+      image-tag: ${{ steps.meta.outputs.tags }}
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: 🐳 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: 🔑 Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: 📋 Extract Metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+    
+    - name: 🏗️ Build and Push Main App Image
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        platforms: linux/amd64
+    
+    - name: 📦 Build Additional Images
+      run: |
+        echo "🏗️ Building additional service images..."
+        
+        # Build backup cron image
+        docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backup:${{ github.sha }} -f Dockerfile.cronjob .
+        docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backup:${{ github.sha }}
+        
+        echo "✅ All Docker images built and pushed successfully"
+
+  # Security Scanning Job
+  security-scan:
+    needs: build-docker
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 🔍 Run Trivy Vulnerability Scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ needs.build-docker.outputs.image-tag }}
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: 📊 Upload Trivy Scan Results
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  # Deploy to Azure VM Job
+  deploy:
+    needs: [build-and-test, build-docker, security-scan]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: 🔧 Setup SSH Key
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.VM_SSH_PRIVATE_KEY }}
+    
+    - name: 📋 Prepare Deployment Files
+      run: |
+        echo "📋 Preparing deployment configuration..."
+        
+        # Create deployment docker-compose file
+        cat > docker-compose.prod.yml << EOF
+        version: '3.8'
+        services:
+          voting_app:
+            image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            deploy:
+              replicas: 3
+            expose:
+              - "8000"
+            env_file:
+              - .env
+            command: uvicorn main:voting_app --host 0.0.0.0 --port 8000
+            volumes:
+              - logger_volume:/app/logs
+            restart: unless-stopped
+        
+          voting_db:
+            image: postgres:15
+            container_name: voting_db
+            ports:
+              - "5432:5432"
+            env_file:
+              - .env
+            environment:
+              POSTGRES_DB: \${POSTGRES_DB}
+              POSTGRES_USER: \${POSTGRES_USER}
+              POSTGRES_PASSWORD: \${POSTGRES_PASSWORD}
+            volumes:
+              - postgres_data:/var/lib/postgresql/data
+            restart: unless-stopped
+        
+          nginx:
+            image: nginx:alpine
+            container_name: nginx
+            ports:
+              - "80:80"
+              - "443:443"
+            volumes:
+              - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+              - ./nginx/ssl:/etc/nginx/ssl:ro
+            depends_on:
+              - voting_app
+            restart: unless-stopped
+        
+          db_backup_cron:
+            image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backup:${{ github.sha }}
+            volumes:
+              - ./backups:/app/backups
+              - postgres_data:/var/lib/postgresql/data:ro
+            env_file:
+              - .env
+            restart: unless-stopped
+        
+        volumes:
+          postgres_data:
+          logger_volume:
+        EOF
+        
+        echo "✅ Deployment files prepared"
+    
+    - name: 🚀 Deploy to Azure VM
+      run: |
+        echo "🚀 Starting deployment to Azure VM..."
+        
+        # Add VM to known hosts
+        ssh-keyscan -H $VM_HOST >> ~/.ssh/known_hosts
+        
+        # Create deployment directory on VM
+        ssh $VM_USER@$VM_HOST "mkdir -p ~/mc101-app"
+        
+        # Copy deployment files
+        scp docker-compose.prod.yml $VM_USER@$VM_HOST:~/mc101-app/
+        scp -r nginx/ $VM_USER@$VM_HOST:~/mc101-app/
+        
+        # Deploy application
+        ssh $VM_USER@$VM_HOST << 'EOF'
+          cd ~/mc101-app
+          
+          echo "🔧 Setting up environment..."
+          
+          # Install Docker and Docker Compose if not installed
+          if ! command -v docker &> /dev/null; then
+            echo "📦 Installing Docker..."
+            curl -fsSL https://get.docker.com -o get-docker.sh
+            sudo sh get-docker.sh
+            sudo usermod -aG docker $USER
+            sudo systemctl enable docker
+            sudo systemctl start docker
+          fi
+          
+          if ! command -v docker-compose &> /dev/null; then
+            echo "📦 Installing Docker Compose..."
+            sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+          fi
+          
+          # Login to GitHub Container Registry
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+          
+          # Create environment file if it doesn't exist
+          if [ ! -f .env ]; then
+            echo "📄 Creating environment file..."
+            cat > .env << 'ENVEOF'
+        # Database Configuration
+        POSTGRES_DB=voting_db
+        POSTGRES_USER=postgres
+        POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+        POSTGRES_HOST=voting_db
+        POSTGRES_PORT_IN_DOCKER=5432
+        POSTGRES_PORT_ON_MACHINE=5432
+        
+        # JWT Configuration
+        JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+        JWT_ALGORITHM=HS256
+        JWT_EXPIRATION_TIME=60
+        
+        # App Encryption
+        APP_ENCRYPTION_KEY=${{ secrets.APP_ENCRYPTION_KEY }}
+        ENVEOF
+          fi
+          
+          echo "⬇️ Pulling latest images..."
+          docker-compose -f docker-compose.prod.yml pull
+          
+          echo "🔄 Stopping existing services..."
+          docker-compose -f docker-compose.prod.yml down || true
+          
+          echo "🚀 Starting new deployment..."
+          docker-compose -f docker-compose.prod.yml up -d
+          
+          echo "🧹 Cleaning up old images..."
+          docker image prune -f
+          
+          echo "📊 Checking service status..."
+          docker-compose -f docker-compose.prod.yml ps
+          
+          echo "✅ Deployment completed successfully!"
+        EOF
+        
+        echo "🎉 Application deployed successfully to https://$VM_HOST"
+    
+    - name: 🔍 Health Check
+      run: |
+        echo "🔍 Performing comprehensive health checks..."
+        
+        # Wait for services to start
+        sleep 30
+        
+        # Health check with retries
+        for i in {1..10}; do
+          echo "⏳ Health check attempt $i/10..."
+          
+          # Test health endpoint
+          if curl -k -f https://$VM_HOST/health > /dev/null 2>&1; then
+            echo "✅ Health endpoint is responding"
+            health_check_passed=true
+            break
+          fi
+          
+          # Test root endpoint as fallback
+          if curl -k -f https://$VM_HOST/ > /dev/null 2>&1; then
+            echo "✅ Root endpoint is responding"
+            health_check_passed=true
+            break
+          fi
+          
+          echo "⏳ Waiting for application to start... (attempt $i/10)"
+          sleep 15
+        done
+        
+        if [ "$health_check_passed" != "true" ]; then
+          echo "❌ Health check failed after 10 attempts"
+          exit 1
+        fi
+        
+        # Detailed endpoint testing
+        echo "🧪 Testing application endpoints..."
+        
+        # Test health endpoint with detailed response
+        echo "Testing /health endpoint:"
+        curl -k -v https://$VM_HOST/health || echo "Health endpoint test completed"
+        
+        # Test API documentation
+        echo "Testing /mc101docs endpoint:"
+        curl -k -I https://$VM_HOST/mc101docs || echo "API docs test completed"
+        
+        # Test non-existing endpoint (should return 404)
+        echo "Testing /non-existing endpoint (should return 404):"
+        curl -k -I https://$VM_HOST/non-existing || echo "Non-existing endpoint test completed"
+        
+        # Final health check
+        ssh $VM_USER@$VM_HOST "cd ~/mc101-app && docker-compose -f docker-compose.prod.yml logs --tail=50"
+    
+    - name: 📊 Deployment Summary
+      run: |
+        echo "📊 Deployment Summary:"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "🎯 Target VM: $VM_HOST"
+        echo "🐳 Docker Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+        echo "🌐 Application URL: https://$VM_HOST"
+        echo "📚 API Documentation: https://$VM_HOST/mc101docs"
+        echo "🔄 Deployment Time: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo "✅ Status: SUCCESS"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+  # Notification Job
+  notify:
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: 📧 Send Deployment Notification
+      run: |
+        if [ "${{ needs.deploy.result }}" == "success" ]; then
+          echo "✅ Deployment SUCCESS notification sent"
+          echo "🎉 MC101 Application successfully deployed to https://$VM_HOST"
+        else
+          echo "❌ Deployment FAILURE notification sent"
+          echo "🚨 MC101 Application deployment failed. Check logs for details."
+        fi

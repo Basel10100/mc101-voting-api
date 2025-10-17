@@ -1,0 +1,441 @@
+{
+	"id": "149f5ce0-5184-4021-a4e5-6a23b5d4ca6a",
+	"name": "MC101 Notes & Voting API - Full Chain",
+	"timestamp": "2025-10-16T19:10:04.449Z",
+	"collection_id": "49018457-55a93575-38de-41a9-90f2-b506180bcaa4",
+	"folder_id": 0,
+	"environment_id": "49018457-32ae899c-06ca-4477-b0db-17e89fb15020",
+	"totalPass": 24,
+	"delay": 0,
+	"persist": true,
+	"status": "finished",
+	"startedAt": "2025-10-16T19:09:59.340Z",
+	"totalFail": 0,
+	"results": [
+		{
+			"id": "6dc1365b-1d68-4d2a-94a8-c41ead87c173",
+			"name": "1. Register User",
+			"url": "http://localhost:8000/users/register",
+			"time": 571,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Status 201 Created": true,
+				"Response has user id and email": true,
+				"Response time < 2000ms": true
+			},
+			"testPassFailCounts": {
+				"Status 201 Created": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Response has user id and email": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Response time < 2000ms": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				571
+			],
+			"allTests": [
+				{
+					"Status 201 Created": true,
+					"Response has user id and email": true,
+					"Response time < 2000ms": true
+				}
+			]
+		},
+		{
+			"id": "354003b9-ccea-4a96-8672-bf43de5b5756",
+			"name": "2. Login User",
+			"url": "http://localhost:8000/users/login",
+			"time": 291,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200 OK": true,
+				"Has Bearer token": true,
+				"Response time < 2000ms": true
+			},
+			"testPassFailCounts": {
+				"Status 200 OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Has Bearer token": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Response time < 2000ms": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				291
+			],
+			"allTests": [
+				{
+					"Status 200 OK": true,
+					"Has Bearer token": true,
+					"Response time < 2000ms": true
+				}
+			]
+		},
+		{
+			"id": "ae6ffe48-992b-4166-aad0-7622ed2f26e8",
+			"name": "3. Get User Info",
+			"url": "http://localhost:8000/users/info",
+			"time": 9,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200 OK": true,
+				"Payload contains user_id and email": true
+			},
+			"testPassFailCounts": {
+				"Status 200 OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Payload contains user_id and email": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				9
+			],
+			"allTests": [
+				{
+					"Status 200 OK": true,
+					"Payload contains user_id and email": true
+				}
+			]
+		},
+		{
+			"id": "098beec1-8f44-4780-a86e-590d5bf69995",
+			"name": "4. Update User (Change Name)",
+			"url": "http://localhost:8000/users/",
+			"time": 32,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200 OK": true,
+				"User name updated": true
+			},
+			"testPassFailCounts": {
+				"Status 200 OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"User name updated": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				32
+			],
+			"allTests": [
+				{
+					"Status 200 OK": true,
+					"User name updated": true
+				}
+			]
+		},
+		{
+			"id": "43cc6e7e-3b99-467e-8e8f-411848dfb26b",
+			"name": "5. Create Note (App-level encryption)",
+			"url": "http://localhost:8000/users/notes",
+			"time": 577,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Status 201 Created": true,
+				"Note created with app-level encryption": true
+			},
+			"testPassFailCounts": {
+				"Status 201 Created": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Note created with app-level encryption": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				577
+			],
+			"allTests": [
+				{
+					"Status 201 Created": true,
+					"Note created with app-level encryption": true
+				}
+			]
+		},
+		{
+			"id": "2326fa74-f75e-4d1b-8eeb-4f90bf20ac47",
+			"name": "6. Get Note (App-level)",
+			"url": "http://localhost:8000/users/notes/3",
+			"time": 277,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200 OK": true,
+				"Note content decrypted automatically": true
+			},
+			"testPassFailCounts": {
+				"Status 200 OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Note content decrypted automatically": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				277
+			],
+			"allTests": [
+				{
+					"Status 200 OK": true,
+					"Note content decrypted automatically": true
+				}
+			]
+		},
+		{
+			"id": "105c34be-c600-45b6-9026-b7d2030f5e61",
+			"name": "7. Create Note (Personal encryption)",
+			"url": "http://localhost:8000/users/notes",
+			"time": 543,
+			"responseCode": {
+				"code": 201,
+				"name": "Created"
+			},
+			"tests": {
+				"Status 201 Created": true,
+				"Note created with personal encryption": true
+			},
+			"testPassFailCounts": {
+				"Status 201 Created": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Note created with personal encryption": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				543
+			],
+			"allTests": [
+				{
+					"Status 201 Created": true,
+					"Note created with personal encryption": true
+				}
+			]
+		},
+		{
+			"id": "f5715d51-7576-4bd4-b3bb-fe6e9a193d5b",
+			"name": "8. Get Note (Personal with password)",
+			"url": "http://localhost:8000/users/notes/4?password=MyNoteSecret!",
+			"time": 284,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200 OK": true,
+				"Personal note decrypted with password": true
+			},
+			"testPassFailCounts": {
+				"Status 200 OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Personal note decrypted with password": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				284
+			],
+			"allTests": [
+				{
+					"Status 200 OK": true,
+					"Personal note decrypted with password": true
+				}
+			]
+		},
+		{
+			"id": "b34c885a-3463-422d-b019-83b26b8dc51c",
+			"name": "9. Update Note (Switch to personal encryption)",
+			"url": "http://localhost:8000/users/notes/3",
+			"time": 539,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200 OK": true,
+				"Note updated to personal encryption": true
+			},
+			"testPassFailCounts": {
+				"Status 200 OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Note updated to personal encryption": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				539
+			],
+			"allTests": [
+				{
+					"Status 200 OK": true,
+					"Note updated to personal encryption": true
+				}
+			]
+		},
+		{
+			"id": "da8c13d7-c013-4a7d-87f8-aaaa2ef34ce9",
+			"name": "10. Change Password",
+			"url": "http://localhost:8000/users/change-password",
+			"time": 634,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status 200 OK": true,
+				"Password changed successfully": true
+			},
+			"testPassFailCounts": {
+				"Status 200 OK": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Password changed successfully": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				634
+			],
+			"allTests": [
+				{
+					"Status 200 OK": true,
+					"Password changed successfully": true
+				}
+			]
+		},
+		{
+			"id": "75160ce0-49bb-4fcf-8ffa-7b71c9f472cc",
+			"name": "11. Delete User",
+			"url": "http://localhost:8000/users/",
+			"time": 24,
+			"responseCode": {
+				"code": 204,
+				"name": "No Content"
+			},
+			"tests": {
+				"Status 204 No Content": true,
+				"User deleted successfully": true
+			},
+			"testPassFailCounts": {
+				"Status 204 No Content": {
+					"pass": 1,
+					"fail": 0
+				},
+				"User deleted successfully": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				24
+			],
+			"allTests": [
+				{
+					"Status 204 No Content": true,
+					"User deleted successfully": true
+				}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 3781,
+	"collection": {
+		"requests": [
+			{
+				"id": "6dc1365b-1d68-4d2a-94a8-c41ead87c173",
+				"method": "POST"
+			},
+			{
+				"id": "354003b9-ccea-4a96-8672-bf43de5b5756",
+				"method": "POST"
+			},
+			{
+				"id": "ae6ffe48-992b-4166-aad0-7622ed2f26e8",
+				"method": "GET"
+			},
+			{
+				"id": "098beec1-8f44-4780-a86e-590d5bf69995",
+				"method": "PATCH"
+			},
+			{
+				"id": "43cc6e7e-3b99-467e-8e8f-411848dfb26b",
+				"method": "POST"
+			},
+			{
+				"id": "2326fa74-f75e-4d1b-8eeb-4f90bf20ac47",
+				"method": "GET"
+			},
+			{
+				"id": "105c34be-c600-45b6-9026-b7d2030f5e61",
+				"method": "POST"
+			},
+			{
+				"id": "f5715d51-7576-4bd4-b3bb-fe6e9a193d5b",
+				"method": "GET"
+			},
+			{
+				"id": "b34c885a-3463-422d-b019-83b26b8dc51c",
+				"method": "PATCH"
+			},
+			{
+				"id": "da8c13d7-c013-4a7d-87f8-aaaa2ef34ce9",
+				"method": "POST"
+			},
+			{
+				"id": "75160ce0-49bb-4fcf-8ffa-7b71c9f472cc",
+				"method": "DELETE"
+			}
+		]
+	}
+}

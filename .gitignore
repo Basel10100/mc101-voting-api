@@ -1,0 +1,8 @@
+__pycache__/
+.env
+.vscode/
+.DS_Store
+.idea/
+test_reports/
+.pytest_cache/
+backups/

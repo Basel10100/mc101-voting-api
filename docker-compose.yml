@@ -1,0 +1,112 @@
+version: '3.8'
+
+# We should define all the services we want to run in our application
+services:
+  # A service named 'voting_app'
+  voting_app:
+    depends_on:
+      - voting_db  # Same as the service name of the database defined below
+    # We say how to build the Docker image for this service
+    deploy:
+      replicas: 3  # Scale the number of replicas for load balancing
+    build: 
+      # The build context is the current directory, "." means the same directory as this docker-compose.yml file
+      context: .
+      # The Dockerfile to use for building the image is named "Dockerfile" in the current directory
+      dockerfile: Dockerfile
+    # Remove deploy.replicas - use --scale flag instead for Docker Compose
+    # We give a name to the container that will run this service to tag and remember it easily.
+    # container_name: voting_app_container
+    # We map port 8000 of the container to port 8000 on the host machine, so we can access the app from outside the container
+    # ports:
+    #   - "8000:8000"
+    expose:
+      - "8000"
+    # We specify an environment file to load environment variables from
+    env_file:
+      - .env
+    # If you want to set environment variables directly in the compose file, you can uncomment and modify the lines below
+    # environment:
+    #   - JWT_SECRET_KEY:your_secret_key
+    #   - JWT_ALGORITHM:HS256
+    #   - JWT_EXPIRATION_TIME:1
+    # The command to run when the container starts, which launches the FastAPI app using Uvicorn
+    command: uvicorn main:voting_app --host 0.0.0.0 --port 8000 --reload
+    # We mount volumes to share files between the host and the container
+    volumes:
+      # This is for the development time (bind volume: no name, just mentioning the current location). We mount the current directory to /app in the container, so changes on the host reflect in the container
+      # On any cloud storage (like google drive), this will make a problem.
+      # So the code should be on a local disk
+      - ./:/app:ro
+      # A named volume called (logger_volume) to persist logs, mounted to /app/logs in the container
+      - logger_volume:/app/logs
+    # networks:
+    #   # We attach this service to a custom network named 'voting_network'
+    #   - voting_network 
+      # TODO: How to connect to localhost if we do not have a network defined here?
+  # Making a postgres database service
+  voting_db:  # This is the name of the service, This will be used in the connection string of the application inside the docker apps
+    # To have access to this db from outside the docker environment, we need to connect to the 
+    # localhost:5555 (or whatever port we define) which will be mapped to the docker container port 5432
+    # So we can connect to the database from outside the docker environment
+    # For instance from PgAdmin, we will use localhost:5555 to connect to this database
+    image: postgres:15
+    container_name: voting_db
+    ports:
+      - "${POSTGRES_PORT_ON_MACHINE}:${POSTGRES_PORT_IN_DOCKER}"
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - voting_app_data:/var/lib/postgresql/data
+  nginx:
+    image: nginx:latest
+    container_name: nginx_container
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/ssl:/etc/nginx/ssl:ro  # Mount the SSL certificate directory
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro  # This is important to mount the config file
+    depends_on:
+      - voting_app
+      - voting_db
+  db_backup_cron:
+    build:
+      context: .
+      dockerfile: Dockerfile.cronjob
+    container_name: db_backup_cron
+    depends_on:
+      - voting_db
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}  # Database password
+      PGUSER: ${POSTGRES_USER}  # Database user
+      PGDATABASE: ${POSTGRES_DB}  # Database name
+      PGHOST: voting_db  # Use the service name as the host
+      PGPORT: 5432  # Default PostgreSQL port inside the container, since both services are in the same Docker network
+      TZ: Europe/Oslo  # Set your desired timezone
+    volumes:
+      - ./backups:/backups # Mount the host directory to store backups
+    
+    command: >
+      sh -c "  
+      echo '0 */1 * * * /usr/local/bin/backup.sh >> /var/log/cron.log 2>&1' > /etc/crontabs/root &&
+      echo 'Installed cron job:' &&
+      cat /etc/crontabs/root &&
+      crond -f 2
+      "
+    # this backup will be run every hour at minute 0
+    # We have hold the command we want to run in a shell script (backup.sh) inside the image.
+    # We have copied this file from our local directory to the image in the Dockerfile.cronjob
+    # So now the backup.sh file is inside the image at /usr/local/bin/backup.sh
+    # This file contains commands to backup the database
+    # Here, we just tell the cron job to run this script at the specific time we want
+volumes:
+  # Named volume for persisting logs should be defined here so Docker Compose can create and manage it
+  # Docker composer will make a volume named (logger_volume) in the docker environment
+  # So we can attach it to the service above
+  logger_volume:
+  voting_app_data:
