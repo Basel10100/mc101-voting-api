@@ -1,9 +1,11 @@
 import os
 from typing import Tuple
-from pydantic import SecretStr
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from pydantic import SecretStr
+
 from config import Settings
 
 settings = Settings()
@@ -24,7 +26,9 @@ def _derive_key(secret: bytes, salt: bytes) -> bytes:
     return kdf.derive(secret)
 
 
-def encrypt_note(plaintext: str, personal_password: SecretStr | None) -> Tuple[bytes, bytes, bytes, bool]:
+def encrypt_note(
+    plaintext: str, personal_password: SecretStr | None
+) -> Tuple[bytes, bytes, bytes, bool]:
     """
     Encrypt note content using AES-GCM.
     - If personal_password is provided: derive key from it (user-level encryption)
@@ -45,7 +49,13 @@ def encrypt_note(plaintext: str, personal_password: SecretStr | None) -> Tuple[b
     return ciphertext, nonce, salt, personal
 
 
-def decrypt_note(ciphertext: bytes, nonce: bytes, salt: bytes, personal_encryption: bool, provided_password: SecretStr | None) -> str:
+def decrypt_note(
+    ciphertext: bytes,
+    nonce: bytes,
+    salt: bytes,
+    personal_encryption: bool,
+    provided_password: SecretStr | None,
+) -> str:
     """
     Decrypt note content using AES-GCM.
     - If personal_encryption is True: provided_password must be present

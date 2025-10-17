@@ -33,7 +33,7 @@
 #     UsersDB = get_users_db()
 #     for user in UsersDB.values():
 #         if user.email == email:
-#             return user 
+#             return user
 #     # This does the same thing
 #     # return next((user for user in UsersDB.values() if user.email == email), None)
 

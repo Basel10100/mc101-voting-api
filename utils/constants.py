@@ -3,7 +3,7 @@ class Endpoints:
     CANDIDATE = "/candidate"
     REGISTER = "/register"
     ROOT = "/"
-    HEALTH = "/health" 
+    HEALTH = "/health"
     LOGIN = "/login"
     LOGOUT = "/logout"
     CHANGE_PASSWORD = "/change-password"
@@ -12,6 +12,7 @@ class Endpoints:
     # Notes endpoints
     NOTES_ROOT = "/notes"
     NOTES_ITEM = "/notes/{note_id}"
+
 
 class ResponseMessages:
     WELCOME = "Welcome to the Voting App!"
@@ -25,11 +26,13 @@ class ResponseMessages:
     INVALID_TOKEN_MISSING_USER = "Invalid token: missing user"
     INVALID_TOKEN = "Invalid token"
 
+
 class TableNames:
     USERS = "users"
     CANDIDATES = "candidates"
     VOTES = "votes"
     NOTES = "notes"
+
 
 class ColumnNames:
     ID = "id"
