@@ -1,6 +1,6 @@
 from typing import Optional
 from pydantic_settings import BaseSettings
-from pydantic import SecretStr
+from pydantic import SecretStr, ConfigDict
 from typing import Optional
 from dotenv import load_dotenv
 
@@ -8,6 +8,11 @@ load_dotenv(".env")  # take environment variables from .env file
 
 
 class Settings(BaseSettings):
+    model_config = ConfigDict(
+        env_file=".env",
+        extra="ignore"  # Ignore extra environment variables
+    )
+    
     JWT_SECRET_KEY: SecretStr
     JWT_ALGORITHM: str
     JWT_EXPIRATION_TIME: int = 3600
@@ -25,5 +30,3 @@ class Settings(BaseSettings):
     PRODUCTION_SERVER_IP: Optional[str] = None
     PRODUCTION_SERVER_USER: Optional[str] = None
     PRODUCTION_SSH_KEY: Optional[SecretStr] = None
-    class Config: 
-        env_file = ".env"

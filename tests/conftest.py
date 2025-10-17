@@ -27,7 +27,7 @@ def clean_database():
     """Clean database before each test"""
     # Import here to avoid circular imports
     from db.DbConfig import Base, get_db_url
-    from db.DBModels import User, Candidate, Vote
+    from db.DBModels import UserDBModel, CandidateDBModel, VoteDBModel
     
     # Create engine and clear all tables
     engine = create_engine(get_db_url())
@@ -39,9 +39,9 @@ def clean_database():
     # Clear all data before each test
     db = SessionLocal()
     try:
-        db.query(Vote).delete()
-        db.query(Candidate).delete()
-        db.query(User).delete()
+        db.query(VoteDBModel).delete()
+        db.query(CandidateDBModel).delete()
+        db.query(UserDBModel).delete()
         db.commit()
     finally:
         db.close()
@@ -51,9 +51,9 @@ def clean_database():
     # Cleanup after test if needed
     db = SessionLocal()
     try:
-        db.query(Vote).delete()
-        db.query(Candidate).delete()
-        db.query(User).delete()
+        db.query(VoteDBModel).delete()
+        db.query(CandidateDBModel).delete()
+        db.query(UserDBModel).delete()
         db.commit()
     finally:
         db.close()
