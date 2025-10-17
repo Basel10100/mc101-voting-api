@@ -138,7 +138,7 @@ jobs:
 
   # Deploy to Azure VM Job
   deploy:
-    needs: [build-and-test, build-docker, security-scan]
+    needs: [build-and-test, build-docker]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     environment: production

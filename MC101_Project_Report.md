@@ -153,7 +153,7 @@ The application follows a microservices architecture pattern where each service 
 
 | Component | Details |
 |-----------|---------|
-| **Project GitHub Repository** | `https://github.com/[USERNAME]/mc101-voting-api` |
+| **Project GitHub Repository** | `https://github.com/Basel10100/mc101-voting-api` |
 | **VM IP Address** | `51.12.210.9` |
 | **VM Details** | VMexam (Ubuntu 22.04, Standard D2s v3, 2 vCPUs, 8 GiB RAM) |
 | **Application URL** | `https://51.12.210.9` |
