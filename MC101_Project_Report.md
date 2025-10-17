@@ -6,7 +6,118 @@
 
 The MC101 Notes & Voting API is a comprehensive microservices-based web application that combines secure personal note management with a demonstration voting system. The application is designed to showcase enterprise-grade security practices, microservices architecture, and modern cloud deployment patterns.
 
-**Core Functionality:**
+The Azure Load Testing service has been configured to evaluate the MC101 application's performance under various load conditions. The testing focuses on two primary scenarios to validate both normal operation and error handling capabilities.
+
+#### 7.1 Test Scenarios
+
+**Scenario 1: Health Endpoint Load Test**
+- **Target**: `https://51.12.210.9/health`
+- **Purpose**: Validate application health monitoring under load
+- **Configuration**:
+  - Virtual Users: 50 concurrent users
+  - Duration: 5 minutes
+  - Ramp-up Time: 1 minute
+  - Expected Response: 200 OK with JSON health status
+
+**Scenario 2: Non-Existing Endpoint Test**
+- **Target**: `https://51.12.210.9/non-existing`
+- **Purpose**: Test error handling and 404 response performance
+- **Configuration**:
+  - Virtual Users: 20 concurrent users
+  - Duration: 2 minutes
+  - Ramp-up Time: 30 seconds
+  - Expected Response: 404 Not Found
+
+#### 7.2 Load Testing Setup
+
+**Azure Load Testing Resource Configuration:**
+```yaml
+Resource Name: mc101-load-testing
+Resource Group: [Same as VM resource group]
+Region: [Same as VM region]
+Test Engine: JMeter-based
+Test Script: mc101-load-test.jmx
+```
+
+**JMeter Test Plan Components:**
+- Thread Groups for concurrent user simulation
+- HTTP Samplers for endpoint requests
+- Response Assertions for validation
+- Summary Reports for performance metrics
+- Results Tree for detailed analysis
+
+#### 7.3 Expected Performance Metrics
+
+**Health Endpoint Performance:**
+- Response Time: < 200ms (95th percentile)
+- Throughput: > 100 requests/second
+- Success Rate: 99%+
+- CPU Utilization: < 70%
+- Memory Usage: < 80%
+
+**Non-Existing Endpoint Performance:**
+- Response Time: < 100ms (faster due to early 404 return)
+- Throughput: > 200 requests/second
+- Success Rate: 100% (404 is expected behavior)
+- Consistent error handling performance
+
+#### 7.4 Load Testing Access Configuration
+
+**IAM Configuration for**: `Siamak.khatami@kristiania.no`
+- **Resource**: Azure Load Testing Service
+- **Role**: Reader
+- **Permissions**: 
+  - View test configurations
+  - Access test results and metrics
+  - Download performance reports
+  - View historical test data
+
+**Setup Instructions:**
+1. Navigate to Azure Portal → Search "Azure Load Testing"
+2. Select the `mc101-load-testing` resource
+3. Go to Access control (IAM) → Add role assignment
+4. Role: Reader → User: `Siamak.khatami@kristiania.no`
+5. Review and assign permissions
+
+#### 7.5 Test Execution and Monitoring
+
+**Manual Test Verification Commands:**
+```bash
+# Test health endpoint response time
+curl -k -w "\nResponse Time: %{time_total}s\n" https://51.12.210.9/health
+
+# Test non-existing endpoint
+curl -k -w "\nResponse Time: %{time_total}s\n" https://51.12.210.9/non-existing
+
+# Continuous monitoring during load test
+watch -n 5 'curl -k -w "Time: %{time_total}s" -s https://51.12.210.9/health'
+```
+
+**CI/CD Integration:**
+The load testing is integrated into the deployment pipeline with automated health checks that verify:
+- Application responsiveness after deployment
+- Health endpoint functionality
+- Error handling for invalid requests
+- Overall system stability under basic load
+
+#### 7.6 Performance Analysis and Reporting
+
+**Key Performance Indicators (KPIs):**
+1. **Response Time Distribution**: P50, P95, P99 percentiles
+2. **Throughput Metrics**: Requests per second under load
+3. **Error Rates**: Failed requests and timeout percentages
+4. **Resource Utilization**: VM CPU, memory, and network usage
+5. **Scalability Assessment**: Performance degradation patterns
+
+**Test Results Documentation:**
+- Screenshots of Azure Load Testing dashboard
+- Performance graphs and metrics charts
+- Comparative analysis between endpoints
+- Recommendations for performance optimization
+
+*Note: Load testing results and screenshots will be captured after Azure Load Testing service setup and test execution.*
+
+---e Functionality:**
 
 1. **User Authentication & Authorization**
    - OAuth2 JWT-based authentication system
@@ -42,29 +153,40 @@ The application follows a microservices architecture pattern where each service 
 
 | Component | Details |
 |-----------|---------|
-| **Project GitHub Repository** | `[PLACEHOLDER: Your GitHub Repository URL]` |
+| **Project GitHub Repository** | `https://github.com/[USERNAME]/mc101-voting-api` |
 | **VM IP Address** | `51.12.210.9` |
 | **VM Details** | VMexam (Ubuntu 22.04, Standard D2s v3, 2 vCPUs, 8 GiB RAM) |
 | **Application URL** | `https://51.12.210.9` |
 | **API Documentation** | `https://51.12.210.9/mc101docs` |
-| **Azure Load Testing Link** | `[PLACEHOLDER: Your Azure Load Testing Service URL]` |
+| **Health Endpoint** | `https://51.12.210.9/health` |
+| **Azure Load Testing Link** | `[To be provided after Azure Load Testing setup]` |
 
 ### Azure IAM Configuration
 
 **Required Access Grant:**
 - **Email**: `Siamak.khatami@kristiania.no`
-- **Role**: Reader
-- **Scope**: VM Resource Group and Application Resources
+- **Role**: Reader (VM Resource Group) + Collaborator (GitHub Repository)
+- **Scope**: VM Resource Group, Application Resources, and GitHub Repository
 
 **IAM Setup Instructions:**
-1. Navigate to Azure Portal → Resource Groups → [Your Resource Group]
-2. Select "Access control (IAM)" → "Add role assignment"
-3. Role: "Reader"
-4. Assign access to: User
-5. Email: `Siamak.khatami@kristiania.no`
-6. Review and assign
+1. **Azure Portal Setup:**
+   - Navigate to Azure Portal → Resource Groups → [Your Resource Group]
+   - Select "Access control (IAM)" → "Add role assignment"
+   - Role: "Reader"
+   - Assign access to: User
+   - Email: `Siamak.khatami@kristiania.no`
+   - Review and assign
 
-*Note: Please replace the GitHub repository and Azure Load Testing placeholders with your actual deployment details.*
+2. **GitHub Repository Setup:**
+   - Repository Settings → Manage access → Invite collaborator
+   - Email: `Siamak.khatami@kristiania.no`
+   - Role: Write access for viewing code and CI/CD logs
+
+3. **Azure Load Testing Setup:**
+   - Load Testing resource → Access control (IAM)
+   - Role: Reader for test results and metrics access
+
+*Note: Complete setup instructions are provided in `GITHUB_REPOSITORY_SETUP.md`*
 
 ---
 
